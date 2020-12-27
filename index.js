@@ -1,69 +1,29 @@
 const chrome = require('chromedriver');
 const {Builder, By, Key, until} = require('selenium-webdriver');
-const fs = require("fs");
+const fs = require('fs');
 const {EOL} = require('os');
 const {INNS} = require('./inns');
+const {collectInformation, getCompanyTitle, getCodes, getCode} = require('./selenium_parser');
 
 // console.log(INNS.length);
 
 // return;
 
-/***
- * Сбор со страницы всей информации об организации
- *
- */
-const collectInformation = async driver => {
-    const dataTableCssClass = 'table reee_table';
-    const rows = await driver.findElements(By.className(dataTableCssClass));
-    const [row] = rows;
-    return await row.getText();
-};
 
-const getCompanyTitle = info =>
-    info.split('\n')
-        .map(v => v.toUpperCase())
-        .filter(v => v.includes('НАИМЕНОВАНИЕ КОМПАНИИ'))
-        .map(v => v.replace('НАИМЕНОВАНИЕ КОМПАНИИ', '').trim())
-        [0];
 
-/***
- *  Вернуть значение по аименованию кода
- *
- */
-const getCode = (info, codeTitle) =>
-    info
-        .split('\n')
-        .filter(v => v.includes(codeTitle))
-        .map(v => v.replace(codeTitle, '').trim())
-        [0];
-
-/***
- *
- * Коды ОКВЭД
- *
- */
-const getCodes = info => {
-    /***
-     *  TODO
-     */
-    const findCodesLinesRegex = /^[0-9]/;
-    const findOnlyCodesInLine = /[0-9]+(\.[0-9]+)*/;
-
-    const lines = info.split('\n');
-    const linesWithCodes = lines.filter(v => findCodesLinesRegex.test(v));
-
-    return linesWithCodes.map(v => v.match(findOnlyCodesInLine)[0]);
-}
-
-(async function example() {
+(async function main() {
     const driver = await new Builder().forBrowser('chrome').build();
     const searchUrl = 'https://vypiska-nalog.com/reestr/search?inn=';
 
     const searchHeaderCssClass = 'h1.text-center';
     const toFile = [];
+    const hrefs = [];
+    const errors = [];
 
     try {
+        // let line = 0;
         for (const inn of INNS) {
+            // ++line;
             try {
                 await driver.get(`${searchUrl}${inn}`);
 
@@ -96,39 +56,41 @@ const getCodes = info => {
                                 /***
                                  *  Получаем все ссылки и вытаскиваем href
                                  */
-                                const hrefs = [];
+
                                 for (const link of links) {
                                     // console.log('-----------------------------------------');
                                     const href = await link.getAttribute('href');
+                                    console.log(href);
                                     hrefs.push(href);
                                 }
 
                                 /***
                                  *  Идём по сслыкам
                                  */
-                                for (const href of hrefs) {
-                                    // console.log(href);
-                                    await driver.get(href);
-
-                                    /***
-                                     *  Поиск элемента на странице и
-                                     *  получение данных из таблицы в разметке
-                                     *
-                                     */
-                                    const info = await collectInformation(driver);
-                                    const title = getCompanyTitle(info);
-                                    const codes = getCodes(info);
-                                    const kpp = getCode(info, 'КПП');
-
-                                    const str = `${title}; ${inn}; ${kpp}; ${codes}; ${href}`;
-
-                                    console.log(str);
-
-                                    toFile.push(str);
-                                }
+                                // for (const href of hrefs) {
+                                //     // console.log(href);
+                                //     await driver.get(href);
+                                //
+                                //     /***
+                                //      *  Поиск элемента на странице и
+                                //      *  получение данных из таблицы в разметке
+                                //      *
+                                //      */
+                                //     const info = await collectInformation(driver);
+                                //     const title = getCompanyTitle(info);
+                                //     const codes = getCodes(info);
+                                //     const kpp = getCode(info, 'КПП');
+                                //
+                                //     const str = `${title}; ${inn}; ${kpp}; ${codes}; ${href}`;
+                                //
+                                //     console.log(str);
+                                //
+                                //     toFile.push(str);
+                                // }
                             }
                         } else {
                             console.log(`Что то в h1.text-center по ИНН ${inn}`);
+                            errors.push(inn);
                         }
                     }
                 }
@@ -136,37 +98,39 @@ const getCodes = info => {
                  *  Иначе по текущему ИНН одна организация
                  */
                 else {
-
-                    console.log(`current url: ${await driver.getCurrentUrl()}`);
-
+                    const url =  await driver.getCurrentUrl();
+                    hrefs.push(url);
                     /***
                      *  Вытаскиваем инфу из таблицы
                      */
-                    const info = await collectInformation(driver);
-                    const title = getCompanyTitle(info);
-                    const codes = getCodes(info);
-                    const kpp = getCode(info, 'КПП');
-
-                    const str = `${title}; ${inn}; ${kpp}; ${codes}; ${searchUrl}${inn}`;
-
-                    console.log(str);
-
-                    toFile.push(str);
+                    // const info = await collectInformation(driver);
+                    // const title = getCompanyTitle(info);
+                    // const codes = getCodes(info);
+                    // const kpp = getCode(info, 'КПП');
+                    //
+                    // const str = `${title}; ${inn}; ${kpp}; ${codes}; ${searchUrl}${inn}`;
+                    //
+                    // console.log(str);
+                    //
+                    // toFile.push(str);
                 }
 
                 // await driver.wait(until.titleIs('wait titles'), 2000);
             } catch (e) {
                 console.log(e);
+                errors.push(e);
                 // fewOrganizations.push(id);
                 // console.log(`***********${e.message}***********`);
             }
         }
 
-        toFile.unshift(`Наименование; ИНН; КПП; Коды ОКВЭД; URL`);
+        // toFile.unshift(`Наименование; ИНН; КПП; Коды ОКВЭД; URL`);
 
         fs.writeFile(
-            'info.csv',
-            toFile.join(EOL),
+            // 'info.csv',
+            'links.txt',
+            // toFile.join(EOL),
+            hrefs.join(EOL),
             {encoding: 'utf-8'},
             e => {
                 if (e) {
@@ -179,7 +143,7 @@ const getCodes = info => {
             }
         );
 
-        console.log(toFile);
+        console.log(errors);
 
     } finally {
         await driver.quit();
