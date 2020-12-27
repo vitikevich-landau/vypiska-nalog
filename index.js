@@ -4,6 +4,10 @@ const fs = require("fs");
 const {EOL} = require('os');
 const {INNS} = require('./inns');
 
+// console.log(INNS.length);
+
+// return;
+
 /***
  * Сбор со страницы всей информации об организации
  *
@@ -95,11 +99,8 @@ const getCodes = info => {
                                 const hrefs = [];
                                 for (const link of links) {
                                     // console.log('-----------------------------------------');
-                                    // console.log(await link.getText());
                                     const href = await link.getAttribute('href');
-                                    // console.log(href);
                                     hrefs.push(href);
-                                    // await driver.get(href);
                                 }
 
                                 /***
@@ -135,6 +136,9 @@ const getCodes = info => {
                  *  Иначе по текущему ИНН одна организация
                  */
                 else {
+
+                    console.log(`current url: ${await driver.getCurrentUrl()}`);
+
                     /***
                      *  Вытаскиваем инфу из таблицы
                      */
