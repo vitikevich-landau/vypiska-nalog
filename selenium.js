@@ -80,6 +80,10 @@ const cheerio = require('cheerio');
                                 }
                             }
                         } else {
+                            /***
+                             *  TODO if something wrong
+                             *
+                             */
                             console.log(`Что то в h1.text-center по ИНН ${inn}`);
                             errors.push(inn);
                         }
