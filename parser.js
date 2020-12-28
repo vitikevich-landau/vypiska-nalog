@@ -51,76 +51,55 @@ const getByTitle = ($cheerio, title) => {
     return needed;
 };
 
-(async () => {
-    const urls = [
-        'https://vypiska-nalog.com/reestr/5408000278-ano-novosibirskiy-tsentr-mediatsii',
-        'https://vypiska-nalog.com/reestr/0400010194-ano-sotsialnoe-vzaimodeystvie',
-        'https://vypiska-nalog.com/reestr/7720286490-ano-umtsdo',
-        'https://vypiska-nalog.com/reestr/7730184385-ano-tsipi-obshchestvo-dlya-vsekh',
-        'https://vypiska-nalog.com/reestr/2221995527-ano-tszbt',
-        'https://vypiska-nalog.com/reestr/7714082749-nou-vpo-rossiyskiy-novyy-universitet-nou-vpo-rosnou-7822',
-        'https://vypiska-nalog.com/reestr/2221025448-akoo-rgi',
-    ];
+/***
+ *  Need codes ОКВЭД
+ *
+ *
+ */
+const getCodes = async () => {};
 
-    /***
-     *  Теперь нужно как то запускать запросы пачкой, например по 50 за раз
-     */
+const logAndWrite = title => fullPath => {
+    const write = writeToFile(fullPath);
 
-    for (const url of urls) {
-        const $dataTable = await loadInfo(url);
+    return source => {
+        write(source);
 
-        /***
-         * Если на странице существует таблица
-         */
-        if ($dataTable && $dataTable.length) {
-            /***
-             *  Save html
-             *  $dataTable.html() -> to DB
-             *
-             */
-            const data = $dataTable.html();
+        const $ = cheerio.load(source);
+        const item = $(`tr.info:contains('${title}')`);
+        const needed = [];
 
-            fs.appendFile(
-                'data.txt',
-                `<table>${data}</table>${EOL}`,
-                {encoding: 'utf-8'},
-                e => {
-                    if (e) {
-                        throw e; // если возникла ошибка
-                    }
+        if (item.length) {
+            let elem = item.next();
 
-                    console.log('Асинхронная запись файла завершена');
-                }
-            );
-
-            /***
-             *  Parse
-             *
-             *  Точечный поиск
-             *
-             */
-            // const codes = getByTitle($dataTable, 'Коды ОКВЭД');
-            // const name = getByTitle($dataTable, 'Наименование');
-            //
-            // const info = [
-            //     name.map(v => {
-            //         const item = v.find('td');
-            //
-            //         if (item.attr('itemprop')) {
-            //             return item.html();
-            //         }
-            //
-            //         return undefined;
-            //     })
-            //         .filter(v => v)
-            //     ,
-            //     codes.map(v => v.find('th').text().split(' '))
-            // ];
-            //
-            // console.log(info)
-        } else {
-            console.log('title not found');
+            while (!elem.attr('class')) {
+                needed.push(elem);
+                elem = elem.next();
+            }
         }
-    }
 
-})();
+        console.log(needed.map(v => v.text()));
+    }
+};
+
+const writeToFile = fullPath => source => {
+    const $ = cheerio.load(source);
+    const html = $('.table.reee_table').html()
+
+    fs.appendFile(
+        fullPath,
+        `${html}${EOL}`,
+        {encoding: 'utf-8'},
+        e => {
+            if (e) {
+                throw e;
+            }
+
+            console.log("Асинхронная запись файла завершена...");
+        }
+    );
+};
+
+module.exports = {
+    writeToFile,
+    logAndWriteToFile: logAndWrite
+};

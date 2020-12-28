@@ -6,17 +6,22 @@ const _ = require('lodash');
 const {INNS} = require('./inns');
 const cheerio = require('cheerio');
 
-(async () => {
+/***
+ *
+ * @param action fn, todo with founded page sorce
+ * @returns {Promise<void>}
+ */
+const startSearch = async (action = () => {}) => {
     const driver = await new Builder().forBrowser('chrome').build();
     const searchUrl = 'https://vypiska-nalog.com/reestr/search?inn=';
 
     const searchHeaderCssClass = 'h1.text-center';
-    const hrefs = [];
+    // const hrefs = [];
     const errors = [];
 
     try {
         let i = 0;
-        for (const inn of _.take(INNS, 500)) {
+        for (const inn of _.take(INNS, 5)) {
             ++i;
             console.log(`iteration: ${i}`);
             try {
@@ -42,6 +47,7 @@ const cheerio = require('cheerio');
                             for (const r of row) {
                                 const links = await r.findElements(By.tagName('a'));
 
+                                const hrefs = [];
                                 /***
                                  *  Получаем все ссылки и вытаскиваем href
                                  */
@@ -58,25 +64,10 @@ const cheerio = require('cheerio');
                                     await driver.get(href);
 
                                     const pageSource = await driver.getPageSource();
-                                    const $ = cheerio.load(pageSource);
-                                    const html = $('.table.reee_table').html()
-
                                     /***
-                                     *  Save to DB
+                                     *  Action with data
                                      */
-                                    fs.appendFile(
-                                        'data.txt',
-                                        `${html}${EOL}`,
-                                        {encoding: 'utf-8'},
-                                        e => {
-                                            if (e) {
-                                                throw e;
-                                            }
-
-                                            console.log("Асинхронная запись файла завершена...");
-                                        }
-                                    );
-
+                                    action(pageSource);
                                 }
                             }
                         } else {
@@ -94,29 +85,13 @@ const cheerio = require('cheerio');
                  */
                 else {
                     const url = await driver.getCurrentUrl();
-                    hrefs.push(url);
-
+                    // hrefs.push(url);
 
                     const pageSource = await driver.getPageSource();
-                    const $ = cheerio.load(pageSource);
-
-                    const html = $('.table.reee_table').html()
-
                     /***
-                     *  Save to DB
+                     *  Action with data
                      */
-                    fs.appendFile(
-                        'data.txt',
-                        `${html}${EOL}`,
-                        {encoding: 'utf-8'},
-                        e => {
-                            if (e) {
-                                throw e;
-                            }
-
-                            console.log("Асинхронная запись файла завершена...");
-                        }
-                    );
+                    action(pageSource);
                 }
 
                 // await driver.wait(until.titleIs('wait titles'), 2000);
@@ -130,4 +105,8 @@ const cheerio = require('cheerio');
     } finally {
         await driver.quit();
     }
-})();
+};
+
+module.exports = {
+    startSearch
+};
