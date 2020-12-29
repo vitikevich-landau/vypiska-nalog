@@ -1,31 +1,24 @@
 require('chromedriver');
 const {Builder, By} = require('selenium-webdriver');
-const fs = require('fs');
-const {EOL} = require('os');
 const _ = require('lodash');
 const {INNS} = require('./inns');
-const cheerio = require('cheerio');
 
-const total = INNS;
-const uniq = _.uniq(INNS);
+
 const repeat = _.filter(INNS, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
+const withOutRepeats = _.difference(INNS, repeat);
+const repeatsOnly = _.difference(INNS, withOutRepeats);
 
-console.log(total.length, uniq.length, repeat.length);
-console.log(_.intersection(uniq, repeat).length);
-console.log(_.difference(total, repeat).length);
-
-// console.log(INNS.length);
-// console.log(_.uniq(INNS).length);
-// console.log(_.filter(INNS, (val, i, iteratee) => _.includes(iteratee, val, i + 1)).length);
+console.log(INNS.length, repeat.length, withOutRepeats.length, repeatsOnly.length);
+console.log(_.uniq(withOutRepeats).length, _.uniq(INNS).length, _.uniq(repeat).length);
 
 return;
 
 /***
  *
- * @param action fn, todo with founded page sorce
+ * @param action fn, todo with founded page source
  * @returns {Promise<void>}
  */
-const startSearch = async (action = () => {}) => {
+const startSearch = async action => {
     const driver = await new Builder().forBrowser('chrome').build();
     const searchUrl = 'https://vypiska-nalog.com/reestr/search?inn=';
 

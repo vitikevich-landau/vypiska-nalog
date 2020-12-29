@@ -17,7 +17,7 @@ const {toFile} = require('./save');
 
     const action = ({iteration, url, pageSource}) => {
         const parser = new Parser(pageSource);
-        const html = parser.html('.table.reee_table');
+        const html = parser.getHtml('.table.reee_table');
         const information = [iteration, ...info(parser), url];
 
 
