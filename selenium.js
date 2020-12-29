@@ -6,6 +6,20 @@ const _ = require('lodash');
 const {INNS} = require('./inns');
 const cheerio = require('cheerio');
 
+const total = INNS;
+const uniq = _.uniq(INNS);
+const repeat = _.filter(INNS, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
+
+console.log(total.length, uniq.length, repeat.length);
+console.log(_.intersection(uniq, repeat).length);
+console.log(_.difference(total, repeat).length);
+
+// console.log(INNS.length);
+// console.log(_.uniq(INNS).length);
+// console.log(_.filter(INNS, (val, i, iteratee) => _.includes(iteratee, val, i + 1)).length);
+
+return;
+
 /***
  *
  * @param action fn, todo with founded page sorce
@@ -20,10 +34,10 @@ const startSearch = async (action = () => {}) => {
     const errors = [];
 
     try {
-        let i = 0;
-        for (const inn of _.take(INNS, 5)) {
-            ++i;
-            console.log(`iteration: ${i}`);
+        let iteration = 0;
+        for (const inn of _.take(INNS, 50)) {
+            ++iteration;
+            console.log(`iteration: ${iteration}, ИНН: ${inn}`);
             try {
                 await driver.get(`${searchUrl}${inn}`);
 
@@ -67,7 +81,7 @@ const startSearch = async (action = () => {}) => {
                                     /***
                                      *  Action with data
                                      */
-                                    action(pageSource);
+                                    action({iteration, url: href, pageSource});
                                 }
                             }
                         } else {
@@ -91,7 +105,7 @@ const startSearch = async (action = () => {}) => {
                     /***
                      *  Action with data
                      */
-                    action(pageSource);
+                    action({iteration, url, pageSource});
                 }
 
                 // await driver.wait(until.titleIs('wait titles'), 2000);
