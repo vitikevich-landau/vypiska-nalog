@@ -3,16 +3,6 @@ const {Builder, By} = require('selenium-webdriver');
 const _ = require('lodash');
 const {INNS} = require('./inns');
 
-
-const repeat = _.filter(INNS, (val, i, iteratee) => _.includes(iteratee, val, i + 1));
-const withOutRepeats = _.difference(INNS, repeat);
-const repeatsOnly = _.difference(INNS, withOutRepeats);
-
-console.log(INNS.length, repeat.length, withOutRepeats.length, repeatsOnly.length);
-console.log(_.uniq(withOutRepeats).length, _.uniq(INNS).length, _.uniq(repeat).length);
-
-return;
-
 /***
  *
  * @param action fn, todo with founded page source
@@ -28,7 +18,7 @@ const startSearch = async action => {
 
     try {
         let iteration = 0;
-        for (const inn of _.take(INNS, 50)) {
+        for (const inn of INNS/*_.take(INNS, 150)*/) {
             ++iteration;
             console.log(`iteration: ${iteration}, ИНН: ${inn}`);
             try {

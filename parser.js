@@ -1,4 +1,6 @@
 const cheerio = require('cheerio');
+const fs = require('fs');
+const _ = require('lodash');
 
 class Parser {
     constructor(pageSource) {
@@ -86,6 +88,14 @@ const codesOnly = parser =>
         .map(v => v[0][0])
 ;
 
+/***
+ *  1 - Весь список
+ *  2 - Только с дублирующими ИНН
+ *  3 - Только с дублирующими ИНН, КПП
+ *  4 - Только с дублирующими ИНН, КПП, Наменованием
+ *  5 - Полностью дублирующиеся
+ *
+ */
 
 const info = parser => {
     const [title] = parser.contains('Полное наименование с ОПФ').values().result;
@@ -96,7 +106,41 @@ const info = parser => {
     return [title, inn, kpp, codes];
 };
 
+const groupBy = (records, fields) => {
+    let i = 0, len = fields.length - 1;
+
+    const recursive = (rcs, i) =>
+        i >= len
+            ? _.groupBy(rcs, r => r[fields[i]])
+            : _
+                .mapValues(
+                    _.groupBy(rcs, r => r[fields[i]]),
+                    r => recursive(r, i + 1)
+                );
+
+    return recursive(records, i);
+};
+
+const parseInfo = file => {
+    const lines = fs.readFileSync(file, "utf8");
+
+    /***
+     *  Преобрзование, данных из файла
+     */
+    return lines
+        .split('\n')
+        .map(v => v.split('|'))
+        .map(v => ({iteration: v[0], title: v[1], inn: v[2], kpp: v[3], codes: v[4], url: v[5]}))
+        .filter(v => v.inn)
+        ;
+};
+
+const convertToSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
+
 module.exports = {
     Parser,
-    info
+    info,
+    parseInfo,
+    groupBy,
+    convertToSave
 };
