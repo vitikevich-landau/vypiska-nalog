@@ -65,7 +65,10 @@ class Parser {
         this._result = this._result.map(v => v[1]);
         return this;
     };
-
+    matchValues = regExp => {
+        this._result = this._result.filter(v => regExp.test(v[0]));
+        return this;
+    }
     splitBy = callback => {
         this._result = callback(this._result);
         return this;
@@ -96,11 +99,10 @@ const codesOnly = parser =>
  *  5 - Полностью дублирующиеся
  *
  */
-
 const info = parser => {
-    const [title] = parser.contains('Полное наименование с ОПФ').values().result;
-    const [inn] = parser.contains('ИНН').values().result;
-    const [kpp] = parser.contains('КПП').values().result;
+    const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().result;
+    const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().result;
+    const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().result;
     const codes = codesOnly(parser);
 
     return [title, inn, kpp, codes];
