@@ -1,11 +1,10 @@
 const fs = require('fs');
 const {EOL} = require('os');
 
+/***
+ *  File storage
+ */
 class File {
-    /***
-     *  Used file names
-     * @type {string}
-     */
     static SOURCE = 'source.txt';
     static INFO = 'info.csv';
     static GROUP_BY_INN_KPP_ONCE = 'group_by_inn_kpp_once.csv';
