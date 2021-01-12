@@ -12,7 +12,7 @@ class File {
     static SAME = '../same.csv';
     static DIFFERENCE = '../difference.csv';
 
-    static save = (fName, data) => {
+    static save = (fName, data) =>
         fs.appendFile(
             fName,
             `${data}${EOL}`,
@@ -25,7 +25,6 @@ class File {
                 console.log(`Асинхронная запись, в файл ${fName}, завершена... Записано ${data.length} байт`);
             }
         );
-    }
 
     static deleteIfExists = fName => {
         if (fs.existsSync(fName)) {

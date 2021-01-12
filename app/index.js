@@ -26,7 +26,7 @@ const {File} = require('./files');
     const subscription = timer(5000)
         .subscribe(
             () => {
-                const info = parseInfo('info.csv');
+                const info = parseInfo(File.INFO);
 
                 const byInnKpp = groupBy(info, ['inn', 'kpp']);
                 /***
