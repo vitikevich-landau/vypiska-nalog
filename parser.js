@@ -123,6 +123,27 @@ const groupBy = (records, fields) => {
     return recursive(records, i);
 };
 
+/***
+ *  Распаковка сгруппированного объекта
+ *
+ * @param obj
+ * @returns {[]}
+ */
+const traverse = obj => {
+    const items = [];
+    const recursive = obj =>
+        _.forIn(obj, v => {
+            if (_.isArray(v)) {
+                items.push(v);
+            }
+            if (_.isObject(v)) {
+                recursive(v);
+            }
+        });
+    recursive(obj);
+    return items;
+};
+
 const parseInfo = file => {
     const lines = fs.readFileSync(file, "utf8");
 
@@ -144,5 +165,6 @@ module.exports = {
     info,
     parseInfo,
     groupBy,
-    convertToSave
+    convertToSave,
+    traverse
 };
