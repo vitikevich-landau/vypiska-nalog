@@ -99,7 +99,7 @@ const codesOnly = parser =>
  *  5 - Полностью дублирующиеся
  *
  */
-const info = parser => {
+const collectInformation = parser => {
     const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().result;
     const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().result;
     const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().result;
@@ -158,13 +158,13 @@ const parseInfo = file => {
         ;
 };
 
-const convertToSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
+const formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
 
 module.exports = {
     Parser,
-    info,
+    collectInformation,
     parseInfo,
     groupBy,
-    convertToSave,
+    formatBeforeSave,
     traverse
 };

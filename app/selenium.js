@@ -8,7 +8,7 @@ const {INNS} = require('./inns');
  * @param action fn, todo with founded page source
  * @returns {Promise<void>}
  */
-const startSearch = async action => {
+const launchDriver = async action => {
     const driver = await new Builder().forBrowser('chrome').build();
     const searchUrl = 'https://vypiska-nalog.com/reestr/search?inn=';
 
@@ -18,7 +18,7 @@ const startSearch = async action => {
 
     try {
         let iteration = 0;
-        for (const inn of /*INNS*/_.take(INNS, 50)) {
+        for (const inn of /*INNS*/_.take(INNS, 15)) {
             ++iteration;
             console.log(`iteration: ${iteration}, ИНН: ${inn}`);
             try {
@@ -105,5 +105,5 @@ const startSearch = async action => {
 };
 
 module.exports = {
-    startSearch
+    launchDriver
 };

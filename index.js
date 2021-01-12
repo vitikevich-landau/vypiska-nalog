@@ -1,8 +1,8 @@
 const {timer} = require('rxjs');
 const _ = require('lodash');
-const {startSearch} = require('./selenium');
-const {Parser, info, parseInfo, groupBy, convertToSave, traverse} = require('./parser');
-const {File} = require('./files');
+const {launchDriver} = require('./app/selenium');
+const {Parser, collectInformation, parseInfo, groupBy, formatBeforeSave, traverse} = require('./app/parser');
+const {File} = require('./app/files');
 
 (async () => {
 
@@ -11,14 +11,14 @@ const {File} = require('./files');
     const action = ({iteration, url, pageSource}) => {
         const parser = new Parser(pageSource);
         const html = parser.getHtml('.table.reee_table');
-        const information = [iteration, ...info(parser), url];
+        const information = [iteration, ...collectInformation(parser), url];
 
 
         File.save(File.SOURCE, `iteration: ${iteration}|<table>${html}</table>|${url}`);
         File.save(File.INFO, information.join('|'));
     };
 
-    await startSearch(action);
+    await launchDriver(action);
 
     /**
      *  После сбора инфы, формируем файлы
@@ -39,7 +39,7 @@ const {File} = require('./files');
                     .flatten()
                     .value()
                 ;
-                File.save(File.GROUP_BY_INN_KPP_ONCE, convertToSave(byInnKppOnce).join('\n'));
+                File.save(File.GROUP_BY_INN_KPP_ONCE, formatBeforeSave(byInnKppOnce).join('\n'));
                 // console.log(convertToSave(byInnKppOnce));
 
                 /***
@@ -52,7 +52,7 @@ const {File} = require('./files');
                     .flatten()
                     .value()
                 ;
-                File.save(File.GROUP_BY_INN_KPP_MORE, convertToSave(byInnKppMore).join('\n'));
+                File.save(File.GROUP_BY_INN_KPP_MORE, formatBeforeSave(byInnKppMore).join('\n'));
                 // console.log(convertToSave(byInnKppMore));
 
                 /***
@@ -70,8 +70,10 @@ const {File} = require('./files');
                 const same = traverse(grouped).filter(v => v.length > 1)/*.flatMap(v => v)*/.map(_.first);
                 const difference = traverse(grouped).filter(v => v.length < 2).flatMap(v => v);
 
-                File.save(File.SAME, convertToSave(same).join('\n'));
-                File.save(File.DIFFERENCE, convertToSave(difference).join('\n'));
+                File.save(File.SAME, formatBeforeSave(same).join('\n'));
+                File.save(File.DIFFERENCE, formatBeforeSave(difference).join('\n'));
+
+                File.save(`group_by_inn_kpp_once+same.csv`, formatBeforeSave(_.concat(byInnKppOnce, same)));
 
                 console.log(
                     _.concat(byInnKppOnce, same).length,
