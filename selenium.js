@@ -98,7 +98,7 @@ const startSearch = async action => {
             }
         }
 
-        console.log(errors);
+        console.log('Errors: ', errors);
     } finally {
         await driver.quit();
     }
