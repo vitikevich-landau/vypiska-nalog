@@ -43,8 +43,6 @@ class File {
     }
 }
 
-// module.exports = {
-//     File
-// };
-
-File.deleteStore();
+module.exports = {
+    File
+};
