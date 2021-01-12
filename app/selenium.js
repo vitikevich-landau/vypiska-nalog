@@ -18,7 +18,7 @@ const startSearch = async action => {
 
     try {
         let iteration = 0;
-        for (const inn of INNS/*_.take(INNS, 150)*/) {
+        for (const inn of /*INNS*/_.take(INNS, 50)) {
             ++iteration;
             console.log(`iteration: ${iteration}, ИНН: ${inn}`);
             try {

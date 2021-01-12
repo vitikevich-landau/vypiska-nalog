@@ -5,12 +5,8 @@ const {Parser, info, parseInfo, groupBy, convertToSave, traverse} = require('./p
 const {File} = require('./files');
 
 (async () => {
-    File.deleteIfExists(File.SOURCE);
-    File.deleteIfExists(File.INFO);
-    File.deleteIfExists(File.GROUP_BY_INN_KPP_MORE);
-    File.deleteIfExists(File.GROUP_BY_INN_KPP_MORE);
-    File.deleteIfExists(File.SAME);
-    File.deleteIfExists(File.DIFFERENCE);
+
+    File.deleteStore();
 
     const action = ({iteration, url, pageSource}) => {
         const parser = new Parser(pageSource);
