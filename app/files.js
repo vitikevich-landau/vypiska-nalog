@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const {EOL} = require('os');
 const {BASE_DIR} = require('../config');
+const {Record} = require('./record');
 
 /***
  *  File storage
@@ -42,6 +43,26 @@ class File {
         File.deleteIfExists(File.SAME);
         File.deleteIfExists(File.DIFFERENCE);
     }
+
+    static formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
+
+    static parseInfoFile = () => {
+        const lines = fs.readFileSync(File.INFO, "utf8");
+
+        /***
+         *  Преобрзование, данных из файла
+         */
+        return lines
+            .split('\n')
+            .map(v => v.split('|'))
+            .map(v => {
+                const [iteration, title, inn, kpp, codes, url] = v;
+                return new Record(title, inn, kpp, codes, url, iteration);
+            })
+            // .filter(v => v.inn)
+            ;
+    };
+
 }
 
 module.exports = {
