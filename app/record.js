@@ -1,15 +1,35 @@
+const _ = require('lodash');
+
 class Record {
-    constructor(title, inn, kpp, codes, url, iteration, version, status) {
+    static STATUS_ACTIVE = 'Действующая';
+
+    constructor(iteration, title, inn, kpp, codes, status, version, url) {
+        this.iteration = iteration;
         this.title = title;
         this.inn = inn;
         this.kpp = kpp;
         this.codes = codes;
-        this.url = url;
-        this.iteration = iteration;
-        this.version = version;
         this.status = status;
+        this.version = version;
+        this.url = url;
     }
 
+    empty = () =>
+        _.chain(this)
+            .map(v => typeof v !== 'function' ? v : undefined)
+            .every(v => !v)
+            .value()
+
+    toArray = () => [
+        this.iteration,
+        this.title,
+        this.inn,
+        this.kpp,
+        this.codes,
+        this.status,
+        this.version,
+        this.url
+    ]
 }
 
 module.exports = {
