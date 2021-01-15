@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const {Record} = require('./record');
 
 /***
  *  Работа с группировками
@@ -9,10 +10,20 @@ const groupBy = (records, fields) => {
 
     const recursive = (rcs, i) =>
         i >= len
-            ? _.groupBy(rcs, r => r[fields[i]])
+            ? _.groupBy(
+            rcs,
+            typeof fields[i] === "function"
+                ? fields[i]
+                : r => r[fields[i]]
+            )
             : _
                 .mapValues(
-                    _.groupBy(rcs, r => r[fields[i]]),
+                    _.groupBy(
+                        rcs,
+                        typeof fields[i] === "function"
+                            ? fields[i]
+                            : r => r[fields[i]]
+                    ),
                     r => recursive(r, i + 1)
                 );
 
@@ -46,13 +57,16 @@ const traverse = obj => {
 
 const formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
 
-const collectInformation = parser => {
+const collectInformation = (parser, {iteration, url}) => {
     const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().Result;
     const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().Result;
     const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().Result;
     const codes = parser.okvedCodesOnly();
+    const [status] = parser.contains('Статус организации').matchValues(/Статус организации/).values().Result;
+    const [version] = parser.contains('Версия справочника ОКВЭД').matchValues(/Версия справочника ОКВЭД/).values().Result;
 
-    return [title, inn, kpp, codes];
+    // return [title, inn, kpp, codes, isActive, version];
+    return new Record(iteration, title, inn, kpp, codes, status, version, url);
 };
 
 module.exports = {
