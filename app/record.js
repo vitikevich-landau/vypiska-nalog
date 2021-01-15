@@ -23,6 +23,7 @@ class Record {
     keys = () => this.toArray().map(_.first);
     values = () => this.toArray().map(second);
 
+    active = () => this.status.includes('Действующая');
 }
 
 module.exports = {
