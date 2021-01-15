@@ -3,9 +3,11 @@ const path = require('path');
 const {EOL} = require('os');
 const {BASE_DIR} = require('../config');
 const {Record} = require('./record');
+const {second} = require('./mixins');
+
 
 /***
- *  File storage
+ *  Работа с файлами
  */
 class File {
     static SOURCE = path.join(BASE_DIR, 'source.txt');
@@ -30,9 +32,8 @@ class File {
         );
 
     static deleteIfExists = fName => {
-        if (fs.existsSync(fName)) {
+        if (fs.existsSync(fName))
             fs.unlinkSync(fName);
-        }
     }
 
     static deleteStore = () => {
@@ -44,8 +45,10 @@ class File {
         File.deleteIfExists(File.DIFFERENCE);
     }
 
-    static formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
-
+    /***
+     *
+     * @returns {Record[]}
+     */
     static parseInfoFile = () => {
         const lines = fs.readFileSync(File.INFO, "utf8");
 
@@ -56,12 +59,23 @@ class File {
             .split('\n')
             .map(v => v.split('|'))
             .map(v => {
-                const [iteration, title, inn, kpp, codes, url] = v;
-                return new Record(title, inn, kpp, codes, url, iteration);
+                const [iteration, title, inn, kpp, codes, status, version, url] = v;
+                return new Record(iteration, title, inn, kpp, codes, status, version, url);
             })
-            // .filter(v => v.inn)
+            .filter(v => !v.empty())
             ;
     };
+
+    /***
+     *
+     * @returns {*[]}
+     */
+    static parseSourceFile = () =>
+        fs.readFileSync(File.SOURCE, "utf8")
+            .split('\n')
+            .map(v => v.split('|'))
+            .map(second)
+    ;
 
 }
 
