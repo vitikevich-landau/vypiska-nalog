@@ -1,8 +1,7 @@
 const _ = require('lodash');
+const {second} = require('./mixins');
 
 class Record {
-    static STATUS_ACTIVE = 'Действующая';
-
     constructor(iteration, title, inn, kpp, codes, status, version, url) {
         this.iteration = iteration;
         this.title = title;
@@ -14,22 +13,16 @@ class Record {
         this.url = url;
     }
 
-    empty = () =>
+    toArray = () =>
         _.chain(this)
-            .map(v => typeof v !== 'function' ? v : undefined)
-            .every(v => !v)
+            .map((v, i) => typeof v !== 'function' ? [i, v] : null)
+            .filter(v => !_.isNull(v))
             .value()
 
-    toArray = () => [
-        this.iteration,
-        this.title,
-        this.inn,
-        this.kpp,
-        this.codes,
-        this.status,
-        this.version,
-        this.url
-    ]
+    empty = () =>this.values().every(v => !v);
+    keys = () => this.toArray().map(_.first);
+    values = () => this.toArray().map(second);
+
 }
 
 module.exports = {
