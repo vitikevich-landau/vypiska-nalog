@@ -1,9 +1,10 @@
 const cheerio = require('cheerio');
-const fs = require('fs');
 const _ = require('lodash');
+const {second} = require('./mixins');
 
 class Parser {
     constructor(pageSource) {
+        this._source = pageSource;
         this._$ = cheerio.load(pageSource);
         this._result = null;
     }
@@ -11,9 +12,13 @@ class Parser {
     /**
      *  Result after operations
      */
-    get result() {
+    get Result() {
         return this._result;
-    } ;
+    }
+
+    get Source() {
+        return this._source;
+    }
 
     /***
      *  Search methods
@@ -36,13 +41,17 @@ class Parser {
         return this;
     }
     group = title => {
-        const item = this._$(`tr.info:contains('${title}')`);
+        const items = this._$(`tr.info:contains('${title}')`);
         const needed = [];
 
-        if (item.length) {
-            let elem = item.next();
+        if (items.length) {
+            let elem = items.next();
 
-            while (elem.attr('class') !== 'info' && !elem.find('button').length) {
+            while (
+                elem.length
+                && elem.attr('class') !== 'info'
+                && !elem.find('button').length
+                ) {
                 needed.push(elem);
                 elem = elem.next();
             }
@@ -54,15 +63,47 @@ class Parser {
     }
 
     /***
+     * Утилитные методы
+     *
+     */
+
+    /***
+     *  Наименования групп в таблице
+     *
+     * @returns {*[]}
+     */
+    groupTitles = () => this.select('tr[class=info]', this._$.text);
+
+    /***
+     *
+     * @param cssSelector, css-selector
+     * @param fn, cheerio function
+     * @returns {[]}
+     */
+    select = (cssSelector, fn) => {
+        const items = [];
+        this._$(cssSelector).each((i, v) => {
+            if (fn) {
+                items.push(fn(this._$(v)));
+            } else {
+                items.push(this._$(v));
+            }
+        })
+        return items;
+    };
+
+    getHtml = selector => this._$(selector).html();
+
+    /***
      *  Filters methods
      *
      */
     keys = () => {
-        this._result = this._result.map(v => v[0]);
+        this._result = this._result.map(_.first);
         return this;
     };
     values = () => {
-        this._result = this._result.map(v => v[1]);
+        this._result = this._result.map(second);
         return this;
     };
     matchValues = regExp => {
@@ -73,98 +114,24 @@ class Parser {
         this._result = callback(this._result);
         return this;
     }
-
     splitByCodes = () => {
         this._result = this._result.map(v => [v[0].split(' '), v[1]]);
         return this;
     };
 
-    getHtml = selector => this._$(selector).html();
-
+    okvedCodesOnly = () => {
+        return _.chain(
+            this
+                .group('Коды ОКВЭД')
+                .splitByCodes()
+                .Result
+        )
+            .map(v => _.chain(v).first().first().value())
+            .value()
+            ;
+    }
 }
-
-const codesOnly = parser =>
-    parser
-        .group('Коды ОКВЭД')
-        .splitByCodes()
-        .result
-        .map(v => v[0][0])
-;
-
-/***
- *  1 - Весь список
- *  2 - Только с дублирующими ИНН
- *  3 - Только с дублирующими ИНН, КПП
- *  4 - Только с дублирующими ИНН, КПП, Наменованием
- *  5 - Полностью дублирующиеся
- *
- */
-const collectInformation = parser => {
-    const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().result;
-    const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().result;
-    const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().result;
-    const codes = codesOnly(parser);
-
-    return [title, inn, kpp, codes];
-};
-
-const groupBy = (records, fields) => {
-    let i = 0, len = fields.length - 1;
-
-    const recursive = (rcs, i) =>
-        i >= len
-            ? _.groupBy(rcs, r => r[fields[i]])
-            : _
-                .mapValues(
-                    _.groupBy(rcs, r => r[fields[i]]),
-                    r => recursive(r, i + 1)
-                );
-
-    return recursive(records, i);
-};
-
-/***
- *  Распаковка сгруппированного объекта
- *
- * @param obj
- * @returns {[]}
- */
-const traverse = obj => {
-    const items = [];
-    const recursive = obj =>
-        _.forIn(obj, v => {
-            if (_.isArray(v)) {
-                items.push(v);
-            }
-            if (_.isObject(v)) {
-                recursive(v);
-            }
-        });
-    recursive(obj);
-    return items;
-};
-
-const parseInfo = file => {
-    const lines = fs.readFileSync(file, "utf8");
-
-    /***
-     *  Преобрзование, данных из файла
-     */
-    return lines
-        .split('\n')
-        .map(v => v.split('|'))
-        .map(v => ({iteration: v[0], title: v[1], inn: v[2], kpp: v[3], codes: v[4], url: v[5]}))
-        .filter(v => v.inn)
-        ;
-};
-
-const formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
 
 module.exports = {
     Parser,
-    collectInformation,
-    parseInfo,
-    groupBy,
-    formatBeforeSave,
-    traverse
 };
