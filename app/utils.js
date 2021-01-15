@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 /***
  *  Работа с группировками
  *
@@ -38,7 +40,24 @@ const traverse = obj => {
     return items;
 };
 
+/***
+ *  Formatting
+ */
+
+const formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
+
+const collectInformation = parser => {
+    const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().Result;
+    const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().Result;
+    const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().Result;
+    const codes = parser.okvedCodesOnly();
+
+    return [title, inn, kpp, codes];
+};
+
 module.exports = {
     groupBy,
-    traverse
+    traverse,
+    formatBeforeSave,
+    collectInformation
 }
