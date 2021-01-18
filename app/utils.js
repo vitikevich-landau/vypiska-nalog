@@ -65,7 +65,6 @@ const toRecord = (parser, {iteration, url}) => {
     const [status] = parser.contains('Статус организации').matchValues(/Статус организации/).values().Result;
     const [version] = parser.contains('Версия справочника ОКВЭД').matchValues(/Версия справочника ОКВЭД/).values().Result;
 
-    // return [title, inn, kpp, codes, isActive, version];
     return new Record(iteration, title, inn, kpp, codes, status, version, url);
 };
 
