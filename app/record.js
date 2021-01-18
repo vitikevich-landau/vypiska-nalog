@@ -7,10 +7,10 @@ class Record {
         this.title = title;
         this.inn = inn;
         this.kpp = kpp;
-        this.codes = codes;
+        this.okved_codes = codes;
         this.status = status;
-        this.version = version;
-        this.url = url;
+        this.okved_codes_version = version;
+        this.url_address = url;
     }
 
     /***
@@ -22,12 +22,21 @@ class Record {
             .map((v, i) => typeof v !== 'function' ? [i, v] : null)
             .filter(v => !_.isNull(v))
             .value()
+    ;
 
+    toSaveDb = () =>
+        _.zipObject(
+            this.keys()
+                .map(_.upperCase)
+                .map(v => v.replace(/\s/g, '_'))
+            ,
+            this.values()
+        )
     /***
      *
      * @returns {boolean}
      */
-    empty = () =>this.values().every(v => !v);
+    empty = () => this.values().every(v => !v);
     /***
      *
      * @returns {*[]}
