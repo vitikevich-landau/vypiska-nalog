@@ -57,7 +57,7 @@ const traverse = obj => {
 
 const formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('|'));
 
-const collectInformation = (parser, {iteration, url}) => {
+const toRecord = (parser, {iteration, url}) => {
     const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().Result;
     const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().Result;
     const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().Result;
@@ -73,5 +73,5 @@ module.exports = {
     groupBy,
     traverse,
     formatBeforeSave,
-    collectInformation
+    toRecord
 }
