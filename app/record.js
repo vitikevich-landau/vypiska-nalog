@@ -2,9 +2,10 @@ const _ = require('lodash');
 const {second} = require('./mixins');
 
 class Record {
-    constructor(iteration, title, inn, kpp, codes, status, version, url) {
+    constructor(iteration, title, short_title, inn, kpp, codes, status, version, url) {
         this.iteration = iteration;
         this.title = title;
+        this.short_title = short_title;
         this.inn = inn;
         this.kpp = kpp;
         this.okved_codes = codes;
@@ -25,13 +26,16 @@ class Record {
     ;
 
     toSaveDb = () =>
-        _.zipObject(
-            this.keys()
-                .map(_.upperCase)
-                .map(v => v.replace(/\s/g, '_'))
-            ,
-            this.values()
-        )
+        ({
+            ..._.zipObject(
+                this.keys()
+                    .map(_.upperCase)
+                    .map(v => v.replace(/\s/g, '_'))
+                ,
+                this.values()
+            ),
+            OKVED_CODES: this.okved_codes.join(',')
+        })
     /***
      *
      * @returns {boolean}

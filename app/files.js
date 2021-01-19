@@ -59,8 +59,8 @@ class File {
             .split('\n')
             .map(v => v.split('|'))
             .map(v => {
-                const [iteration, title, inn, kpp, codes, status, version, url] = v;
-                return new Record(iteration, title, inn, kpp, codes, status, version, url);
+                const [iteration, title, short_title, inn, kpp, codes, status, version, url] = v;
+                return new Record(iteration, title, short_title, inn, kpp, codes, status, version, url);
             })
             .filter(v => !v.empty())
             ;

@@ -59,13 +59,14 @@ const formatBeforeSave = infoObject => _.map(infoObject, v => _.values(v).join('
 
 const toRecord = (parser, {iteration, url}) => {
     const [title] = parser.contains('Полное наименование с ОПФ').matchValues(/Полное наименование с ОПФ/).values().Result;
+    const [short_title] = parser.contains('Краткое наименование с ОПФ').matchValues(/Краткое наименование с ОПФ/).values().Result;
     const [inn] = parser.contains('ИНН').matchValues(/ИНН/).values().Result;
     const [kpp] = parser.contains('КПП').matchValues(/КПП/).values().Result;
     const codes = parser.okvedCodesOnly();
     const [status] = parser.contains('Статус организации').matchValues(/Статус организации/).values().Result;
     const [version] = parser.contains('Версия справочника ОКВЭД').matchValues(/Версия справочника ОКВЭД/).values().Result;
 
-    return new Record(iteration, title, inn, kpp, codes, status, version, url);
+    return new Record(iteration, title, short_title, inn, kpp, codes, status, version, url);
 };
 
 module.exports = {
