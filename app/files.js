@@ -27,7 +27,7 @@ class File {
                     throw e;
                 }
 
-                console.log(`Асинхронная запись, в файл ${fName}, завершена... Записано ${data.length} байт`);
+                console.log(`Запись в файл ${fName}, завершена... Записано ${data.length} байт`);
             }
         );
 
