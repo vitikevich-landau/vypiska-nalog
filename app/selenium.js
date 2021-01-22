@@ -1,7 +1,7 @@
 require('chromedriver');
 const {Builder, By} = require('selenium-webdriver');
 const _ = require('lodash');
-const {INNS} = require('./inns');
+const {DbInstance} = require('./db');
 
 /***
  *
@@ -16,9 +16,12 @@ const launchDriver = async action => {
     // const hrefs = [];
     const errors = [];
 
+    const querySet = await DbInstance.selectINNs();
+    const inns = querySet.rows.map(v => v[0]);
+
     try {
         let iteration = 0;
-        for (const inn of INNS/*_.take(INNS, 50)*/) {
+        for (const inn of inns/*_.take(inns, 75)*/) {
             ++iteration;
             console.log(`iteration: ${iteration}, ИНН: ${inn}`);
             try {
@@ -93,9 +96,14 @@ const launchDriver = async action => {
 
                 // await driver.wait(until.titleIs('wait titles'), 2000);
             } catch (e) {
-                console.log(e);
+                // console.log(e);
                 errors.push(e);
             }
+        }
+
+        if (errors.length) {
+            errors.unshift(`************************${new Date()}***********************`);
+            File.save('selenium_errors.txt', errors.join('\n'));
         }
 
         console.log('Errors: ', errors);
