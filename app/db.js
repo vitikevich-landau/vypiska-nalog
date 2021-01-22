@@ -1,12 +1,14 @@
 const oracleDb = require('oracledb');
-const {File} = require('./files');
-const _ = require('lodash');
 
 class Db {
+    static RECORDS_TABLE = 'UDO_T_PA_VYPISKANALOG_RECODRS';
+    static AGNLIST_TABLE = 'AGNLIST';
+
     static #connectOptions = {
         user: 'PARUS',
         password: 'z123',
-        connectString: '192.168.1.130/MT'
+        // connectString: '192.168.1.130/MT'
+        connectString: '192.168.1.125/ONEDB'
     }
     static #recordsBindOptions = {
         TITLE: {type: oracleDb.STRING, maxSize: 2000},
@@ -74,28 +76,44 @@ class Db {
         );
 
     insertRecords = async records => await this.executeMany(
-            `
-            INSERT INTO 
-                UDO_T_PA_VYPISKANALOG_RECODRS
+        `
+            insert into 
+                ${Db.RECORDS_TABLE}
                 (RN, TITLE, SHORT_TITLE, INN, KPP, OKVED_CODES, STATUS, OKVED_CODES_VERSION, URL_ADDRESS, INSER_DATE)
-            VALUES 
+            values 
                 (GEN_ID(), :TITLE, :SHORT_TITLE, :INN, :KPP, :OKVED_CODES, :STATUS, :OKVED_CODES_VERSION, :URL_ADDRESS, SYSDATE)
         `,
         records,
         {bindDefs: Db.#recordsBindOptions}
     );
-
+    selectINNs = async () => await this.execute(
+    `
+            select
+                A.AGNIDNUMB
+            from
+                (
+                    select
+                        min(A.RN) over(
+                            partition by A.AGNIDNUMB
+                        ) FIRST_RN,
+                        A.*
+                    from
+                        ${Db.AGNLIST_TABLE} A
+                    where
+                        A.AGNIDNUMB is not null
+                ) A
+            where
+                A.RN = A.FIRST_RN
+                and LENGTH(A.AGNIDNUMB) > 3
+                and REGEXP_INSTR(TRIM(A.AGNIDNUMB),'[^[[:digit:]]]*') = 0
+    `
+    );
 }
 
 module.exports = {
     DbInstance: new Db()
-}
+};
 
-// (async () => {
-//     const db = await new Db();
-//
-
-// })();
 
 
 
